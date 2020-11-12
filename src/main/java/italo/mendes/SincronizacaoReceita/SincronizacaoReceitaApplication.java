@@ -1,11 +1,14 @@
 package italo.mendes.SincronizacaoReceita;
 
+import italo.mendes.SincronizacaoReceita.com.builder.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import java.io.File;
@@ -13,8 +16,8 @@ import java.io.File;
 @SpringBootApplication
 public class SincronizacaoReceitaApplication implements CommandLineRunner {
 
-	@Value("${application.name}")
-	private String applicationName;
+	@Autowired
+	ApplicationProperties applicationProperties;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SincronizacaoReceitaApplication.class, args);
@@ -22,15 +25,19 @@ public class SincronizacaoReceitaApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		if(args.length > 0)
-		{
+
+		File arquivoRetaguardaCSV = null;
+		if(args.length > 0) {
 			String arquivoRetaguardaCSVPath = args[0];
-			File arquivoRetaguardaCSV = new File(arquivoRetaguardaCSVPath);
-			System.out.println(this.applicationName+" - Iniciando o processamento do arquivo "+arquivoRetaguardaCSV.getName());
-            //TODO Criar configurações de Banco de dados.
-			//TODO chamar a classe Builder.
+			arquivoRetaguardaCSV = new File(arquivoRetaguardaCSVPath);
+		}
+
+		if(arquivoRetaguardaCSV != null && arquivoRetaguardaCSV.exists() && !arquivoRetaguardaCSV.isDirectory()){
+			System.out.println(applicationProperties.getApplicationName()+" - Iniciando o processamento do arquivo "+arquivoRetaguardaCSV.getName());
+			Builder builder = new Builder(applicationProperties, arquivoRetaguardaCSV);
+			builder.build();
 		} else {
-			System.out.println(this.applicationName + " - Pelo menos um arquivo de retaguarda deve ser informado. Ex. '../sample.csv");
+			System.out.println(applicationProperties.getApplicationName() + " - Pelo menos um arquivo de retaguarda deve ser informado. Ex. '../sample.csv");
 		}
 	}
 
