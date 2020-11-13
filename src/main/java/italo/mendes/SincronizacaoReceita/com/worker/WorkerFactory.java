@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Classe responsável por controlar instancias da classe Worker.
@@ -27,13 +30,18 @@ public class WorkerFactory {
         this.workers = new ArrayList<Worker>();
     }
 
-    public void addWorker(Worker worker){
-        this.workers.add(worker);
-    }
-
     public void process() {
-        //TODO Executar os workers
-        System.out.println(applicationProperties.getApplicationName()+" - Excecução dos Workers.");
-    }
+        System.out.println(applicationProperties.getApplicationName() + " - Excecução dos Workers.");
 
+        ExecutorService workersExecutor = Executors.newFixedThreadPool(applicationProperties.getNumberOfWorkers());
+        for (Worker woker : workers) {
+            workersExecutor.execute(woker);
+        }
+        workersExecutor.shutdown();
+        try {
+            workersExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.out.println(applicationProperties.getApplicationName() + " - Erro no processamento dos arquivos. Motivo:" + e.getMessage());
+        }
+    }
 }

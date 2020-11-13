@@ -25,4 +25,8 @@ public class ApplicationProperties {
     private Integer numberOfMergeWorkers;
     @Value("${application.max_items_per_worker}")
     private Integer maxItemsPerWorker;
+    @Value("${application.max_time_process}")
+    private Long maxTimeToProcess;
+    @Value("${application.pathTemp}")
+    private String pathTemp;
 }

@@ -1,7 +1,12 @@
 package italo.mendes.SincronizacaoReceita.com.worker;
 
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
 import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguarda;
+import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguardaUtils;
 import italo.mendes.SincronizacaoReceita.com.service.ReceitaService;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +14,13 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,28 +37,33 @@ public class Worker implements Runnable {
     //TODO Ajustar para adicionar injeção de código
     private ApplicationProperties applicationProperties;
     private List<LinhaArquivoRetaguarda> linesToWork;
+    private int id;
+    private LinhaArquivoRetaguardaUtils utils;
 
-    public Worker(ApplicationProperties applicationProperties, List<LinhaArquivoRetaguarda> linesToWork) {
+    public Worker(ApplicationProperties applicationProperties, List<LinhaArquivoRetaguarda> linesToWork, int id) {
         this.applicationProperties = applicationProperties;
         this.linesToWork = linesToWork;
+        this.id = id;
+        this.utils = new LinhaArquivoRetaguardaUtils();
     }
 
     @Override
     public void run() {
         try {
-            //TODO Recebe um processo com seus items
-            //TODO Atualiza o processo(PROCESS_INICIADO)
-            //TODO Chama AtualizarConta para items informados
             ReceitaService receitaService = new ReceitaService();
-            for (LinhaArquivoRetaguarda line : linesToWork) {
-                Boolean resultado = receitaService.atualizarConta(line.getAgencia(), line.getConta(), Double.valueOf(line.getSaldo()), line.getStatus());
+            for (final LinhaArquivoRetaguarda line : linesToWork) {
+                Boolean resultado = receitaService.atualizarConta(
+                        line.getAgencia(),
+                        line.getConta().replace("-",""),
+                        Double.valueOf(line.getSaldo().replace(",",".")),
+                        line.getStatus());
                 line.setResultado(resultado.toString());
             }
-            //TODO Gera o arquivo temporario com os items processados
-            //TODO Atualiza o processo(PROCESS_ENCERRADO)
-            //TODO Chama o WorkerFinisher
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            utils.generateCSVFile(applicationProperties, linesToWork,id+".csv",true, false);
+            System.out.println(applicationProperties.getApplicationName()+" - Worker: "+this.id+" executado com sucesso.");
+        } catch (Exception e) {
+            System.out.println(applicationProperties.getApplicationName()+" - Erro no processamento do dos arquivos. Worker: "+this.id+"; Motivo:"+e.getMessage());
         }
     }
 }

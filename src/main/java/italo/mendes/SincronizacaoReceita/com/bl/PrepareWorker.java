@@ -1,19 +1,17 @@
-package italo.mendes.SincronizacaoReceita.com.worker;
+package italo.mendes.SincronizacaoReceita.com.bl;
 
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.bean.ColumnPositionMappingStrategy;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
+import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguardaUtils;
 import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguarda;
 import com.google.common.collect.Lists;
+import italo.mendes.SincronizacaoReceita.com.merge.MergeWorkerFactory;
+import italo.mendes.SincronizacaoReceita.com.worker.Worker;
+import italo.mendes.SincronizacaoReceita.com.worker.WorkerFactory;
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
@@ -28,42 +26,31 @@ public class PrepareWorker {
 
     //TODO Ajustar para adicionar injeção de código
     private ApplicationProperties applicationProperties;
+    private LinhaArquivoRetaguardaUtils arquivoUtils;
 
     public PrepareWorker(ApplicationProperties applicationProperties){
         this.applicationProperties = applicationProperties;
+        this.arquivoUtils = new LinhaArquivoRetaguardaUtils();
     }
 
     public void prepareRoutine(File arquivoRetaguardaCSV){
         try {
-            List<LinhaArquivoRetaguarda> linhas = carregarLinhasArquivoRetaguardaCSV(arquivoRetaguardaCSV);
+            List<LinhaArquivoRetaguarda> linhas = arquivoUtils.carregarLinhasArquivoRetaguardaCSV(arquivoRetaguardaCSV, 1,';');
             WorkerFactory factory =  new WorkerFactory(applicationProperties);
+            int workerId = 0;
             for (List<LinhaArquivoRetaguarda> linhasPerWorker : Lists.partition(linhas, applicationProperties.getMaxItemsPerWorker())) {
-                factory.addWorker(new Worker(applicationProperties, linhasPerWorker));
+                factory.getWorkers().add(new Worker(applicationProperties, linhasPerWorker, workerId++));
             }
             System.out.println(applicationProperties.getApplicationName()+" - "+factory.getWorkers().size()+" Trabalhadores vão processar as "+linhas.size()+" linhas do arquivo informado.");
+            arquivoUtils.cleanTempFolder(applicationProperties);
             factory.process();
+
+            MergeWorkerFactory mergeFactory =  new MergeWorkerFactory(applicationProperties);
+            mergeFactory.process();
+
         } catch (Exception e) {
             System.out.println(applicationProperties.getApplicationName()+" - Erro ao preparar o processamento do arquivo("+arquivoRetaguardaCSV.getName()+"). Motivo:"+e.getMessage());
         }
-    }
-
-    private static List<LinhaArquivoRetaguarda> carregarLinhasArquivoRetaguardaCSV(File arquivoRetaguardaCSV) throws IOException {
-        CSVParser parser = new CSVParserBuilder().withSeparator(';').build();
-        CSVReader csvReader = new CSVReaderBuilder(new FileReader(arquivoRetaguardaCSV)).withSkipLines(1).withCSVParser(parser).build();
-
-        ColumnPositionMappingStrategy strategy = new ColumnPositionMappingStrategy();
-        strategy.setType(LinhaArquivoRetaguarda.class);
-        strategy.setColumnMapping(LinhaArquivoRetaguarda.getEntryColumns());
-
-        CsvToBean csvToBean = new CsvToBeanBuilder(csvReader)
-                .withMappingStrategy(strategy)
-                .withIgnoreLeadingWhiteSpace(true)
-                .build();
-
-        List<LinhaArquivoRetaguarda> linhas = csvToBean.parse();
-        csvReader.close();
-
-        return linhas;
     }
 }
 

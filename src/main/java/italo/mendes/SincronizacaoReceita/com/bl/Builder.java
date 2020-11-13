@@ -1,13 +1,8 @@
-package italo.mendes.SincronizacaoReceita.com.builder;
+package italo.mendes.SincronizacaoReceita.com.bl;
 
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.worker.PrepareWorker;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 
@@ -16,7 +11,6 @@ import java.io.File;
  *
  * @author Italo Mendes Rodrigues
  */
-
 @Component
 @NoArgsConstructor
 public class Builder {
