@@ -1,7 +1,10 @@
 package italo.mendes.SincronizacaoReceita.com.merge;
 
+import italo.mendes.SincronizacaoReceita.ApplicationConstants;
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
 import italo.mendes.SincronizacaoReceita.com.worker.Worker;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,17 +17,19 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Italo Mendes Rodrigues
  */
+@Component
 public class MergeWorkerFactory {
+    @Autowired
     private ApplicationProperties applicationProperties;
     private List<MergeWorker> workers;
 
-    public MergeWorkerFactory(ApplicationProperties applicationProperties) {
-        this.applicationProperties = applicationProperties;
+    public MergeWorkerFactory() {
+        this.applicationProperties = new ApplicationProperties();
         this.workers = new ArrayList<MergeWorker>();
     }
 
     public void process() {
-        System.out.println(applicationProperties.getApplicationName() + " - Excecução dos MergeWorkers.");
+        System.out.printf(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_START, applicationProperties.getApplicationName());
 
         createMergeWorkers();
         ExecutorService workersExecutor = Executors.newFixedThreadPool(applicationProperties.getNumberOfWorkers());
@@ -33,15 +38,15 @@ public class MergeWorkerFactory {
         }
         workersExecutor.shutdown();
         try {
-            workersExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            workersExecutor.awaitTermination(applicationProperties.getMaxTimeToProcess(), TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            System.out.println(applicationProperties.getApplicationName() + " - Erro na finalização do processamento dos arquivos. Motivo:" + e.getMessage());
+            System.out.printf(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_ERROR, applicationProperties.getApplicationName(), e.getMessage());
         }
     }
 
     private void createMergeWorkers() {
         for (int i = 0; i < this.applicationProperties.getNumberOfMergeWorkers(); i++) {
-            MergeWorker worker = new MergeWorker(this.applicationProperties, i);
+            MergeWorker worker = new MergeWorker(applicationProperties, i);
             this.workers.add(worker);
         }
     }

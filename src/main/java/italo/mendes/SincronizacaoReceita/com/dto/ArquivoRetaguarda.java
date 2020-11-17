@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LinhaArquivoRetaguarda {
+public class ArquivoRetaguarda {
 
     @CsvBindByPosition(position = 0)
     @CsvBindByName(column = "agencia")
@@ -28,12 +28,10 @@ public class LinhaArquivoRetaguarda {
     @CsvBindByName(column = "resultado")
     private String resultado;
 
-    public static String[] getEntryColumns(){
-        return new String[] {"agencia", "conta", "saldo", "status"};
-    }
-    public static String getProcessedColumns(){
+    public static String getProcessedColumnsHeaders(){
         return "agencia;conta;saldo;status;resultado";
     }
+
     @Override
     public String toString() {
         return "{" + agencia + ";" + conta + ";" + saldo + ";" + status + ";" + resultado + "}";

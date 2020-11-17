@@ -1,18 +1,19 @@
 package italo.mendes.SincronizacaoReceita.com.bl;
 
+import italo.mendes.SincronizacaoReceita.ApplicationConstants;
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguardaUtils;
-import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguarda;
+import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguarda;
 import com.google.common.collect.Lists;
 import italo.mendes.SincronizacaoReceita.com.merge.MergeWorkerFactory;
 import italo.mendes.SincronizacaoReceita.com.worker.Worker;
 import italo.mendes.SincronizacaoReceita.com.worker.WorkerFactory;
-import org.apache.commons.io.FileUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,36 +21,37 @@ import java.util.List;
  *
  * @author Italo Mendes Rodrigues
  */
-
 @Component
+@Getter
+@Setter
 public class PrepareWorker {
 
-    //TODO Ajustar para adicionar injeção de código
+    @Autowired
     private ApplicationProperties applicationProperties;
-    private LinhaArquivoRetaguardaUtils arquivoUtils;
+    @Autowired
+    WorkerFactory workerFactory;
+    @Autowired
+    MergeWorkerFactory mergeFactory;
 
-    public PrepareWorker(ApplicationProperties applicationProperties){
-        this.applicationProperties = applicationProperties;
-        this.arquivoUtils = new LinhaArquivoRetaguardaUtils();
-    }
+    private ArquivoRetaguardaUtils arquivoUtils;
 
     public void prepareRoutine(File arquivoRetaguardaCSV){
         try {
-            List<LinhaArquivoRetaguarda> linhas = arquivoUtils.carregarLinhasArquivoRetaguardaCSV(arquivoRetaguardaCSV, 1,';');
-            WorkerFactory factory =  new WorkerFactory(applicationProperties);
+            arquivoUtils = new ArquivoRetaguardaUtils();
+            List<ArquivoRetaguarda> linhas = arquivoUtils.loadArquivoRetaguarda(arquivoRetaguardaCSV, 1,';');
             int workerId = 0;
-            for (List<LinhaArquivoRetaguarda> linhasPerWorker : Lists.partition(linhas, applicationProperties.getMaxItemsPerWorker())) {
-                factory.getWorkers().add(new Worker(applicationProperties, linhasPerWorker, workerId++));
+            for (List<ArquivoRetaguarda> linhasPerWorker : Lists.partition(linhas, applicationProperties.getMaxItemsPerWorker())) {
+                workerFactory.getWorkers().add(new Worker(applicationProperties, linhasPerWorker, workerId++));
             }
-            System.out.println(applicationProperties.getApplicationName()+" - "+factory.getWorkers().size()+" Trabalhadores vão processar as "+linhas.size()+" linhas do arquivo informado.");
+            System.out.printf(ApplicationConstants.MESSAGE_WORKER_FACTORY_LOAD, applicationProperties.getApplicationName(),
+                    workerFactory.getWorkers().size(), linhas.size());
             arquivoUtils.cleanTempFolder(applicationProperties);
-            factory.process();
-
-            MergeWorkerFactory mergeFactory =  new MergeWorkerFactory(applicationProperties);
+            workerFactory.process();
             mergeFactory.process();
 
         } catch (Exception e) {
-            System.out.println(applicationProperties.getApplicationName()+" - Erro ao preparar o processamento do arquivo("+arquivoRetaguardaCSV.getName()+"). Motivo:"+e.getMessage());
+            System.out.printf( ApplicationConstants.MESSAGE_PREPARE_WORKER_ERROR, applicationProperties.getApplicationName(),
+                    arquivoRetaguardaCSV.getName(), e.getMessage());
         }
     }
 }

@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
@@ -14,19 +15,20 @@ import org.springframework.stereotype.Service;
 @Getter
 @Setter
 @Configuration
-@PropertySource("classpath:application.properties")
 public class ApplicationProperties {
 
     @Value("${application.name}")
     private String applicationName;
     @Value("${application.number_of_workers}")
-    private Integer numberOfWorkers;
+    private int numberOfWorkers;
     @Value("${application.number_of_merge_workers}")
-    private Integer numberOfMergeWorkers;
+    private int numberOfMergeWorkers;
     @Value("${application.max_items_per_worker}")
-    private Integer maxItemsPerWorker;
+    private int maxItemsPerWorker;
     @Value("${application.max_time_process}")
-    private Long maxTimeToProcess;
+    private int maxTimeToProcess;
     @Value("${application.pathTemp}")
     private String pathTemp;
+    @Value("${application.resultFile}")
+    private String resultFile;
 }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.env.Environment;
 
 import java.io.File;
 
@@ -12,7 +13,9 @@ import java.io.File;
 public class SincronizacaoReceitaApplication implements CommandLineRunner {
 
 	@Autowired
-	ApplicationProperties applicationProperties;
+	private Builder builder;
+	@Autowired
+	private ApplicationProperties applicationProperties;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SincronizacaoReceitaApplication.class, args);
@@ -23,16 +26,15 @@ public class SincronizacaoReceitaApplication implements CommandLineRunner {
 
 		File arquivoRetaguardaCSV = null;
 		if(args.length > 0) {
-			String arquivoRetaguardaCSVPath = args[0];
-			arquivoRetaguardaCSV = new File(arquivoRetaguardaCSVPath);
+			arquivoRetaguardaCSV = new File(args[0]);
 		}
 
 		if(arquivoRetaguardaCSV != null && arquivoRetaguardaCSV.exists() && !arquivoRetaguardaCSV.isDirectory()){
-			System.out.println(applicationProperties.getApplicationName()+" - Iniciando o processamento do arquivo "+arquivoRetaguardaCSV.getName());
-			Builder builder = new Builder(applicationProperties, arquivoRetaguardaCSV);
+			System.out.printf(ApplicationConstants.MESSAGE_APP_STARTED, applicationProperties.getApplicationName() , arquivoRetaguardaCSV.getName());
+			builder.setArquivoRetaguardaCSV(arquivoRetaguardaCSV);
 			builder.build();
 		} else {
-			System.out.println(applicationProperties.getApplicationName() + " - Pelo menos um arquivo de retaguarda deve ser informado. Ex. '../sample.csv");
+			System.out.printf(ApplicationConstants.MESSAGE_APP_START_ERROR, applicationProperties.getApplicationName());
 		}
 	}
 

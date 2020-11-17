@@ -1,26 +1,13 @@
 package italo.mendes.SincronizacaoReceita.com.worker;
 
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+import italo.mendes.SincronizacaoReceita.ApplicationConstants;
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguarda;
-import italo.mendes.SincronizacaoReceita.com.dto.LinhaArquivoRetaguardaUtils;
+import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguarda;
+import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
 import italo.mendes.SincronizacaoReceita.com.service.ReceitaService;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,30 +15,28 @@ import java.util.List;
  *
  * @author Italo Mendes Rodrigues
  */
-@Component
 @Getter
 @Setter
-@NoArgsConstructor
 public class Worker implements Runnable {
 
-    //TODO Ajustar para adicionar injeção de código
+    private ReceitaService receitaService;
     private ApplicationProperties applicationProperties;
-    private List<LinhaArquivoRetaguarda> linesToWork;
+    private List<ArquivoRetaguarda> linesToWork;
     private int id;
-    private LinhaArquivoRetaguardaUtils utils;
+    private ArquivoRetaguardaUtils utils;
 
-    public Worker(ApplicationProperties applicationProperties, List<LinhaArquivoRetaguarda> linesToWork, int id) {
+    public Worker(ApplicationProperties applicationProperties, List<ArquivoRetaguarda> linesToWork, int id) {
         this.applicationProperties = applicationProperties;
         this.linesToWork = linesToWork;
         this.id = id;
-        this.utils = new LinhaArquivoRetaguardaUtils();
+        this.utils = new ArquivoRetaguardaUtils();
+        this.receitaService =  new ReceitaService();
     }
 
     @Override
     public void run() {
         try {
-            ReceitaService receitaService = new ReceitaService();
-            for (final LinhaArquivoRetaguarda line : linesToWork) {
+            for (final ArquivoRetaguarda line : linesToWork) {
                 Boolean resultado = receitaService.atualizarConta(
                         line.getAgencia(),
                         line.getConta().replace("-",""),
@@ -60,10 +45,10 @@ public class Worker implements Runnable {
                 line.setResultado(resultado.toString());
             }
 
-            utils.generateCSVFile(applicationProperties, linesToWork,id+".csv",true, false);
-            System.out.println(applicationProperties.getApplicationName()+" - Worker: "+this.id+" executado com sucesso.");
+            utils.generateCSVFile(applicationProperties, linesToWork, id + ApplicationConstants.FILE_CSV, true, false);
+            System.out.printf(ApplicationConstants.MESSAGE_WORKER_STARTED, applicationProperties.getApplicationName(), this.id);
         } catch (Exception e) {
-            System.out.println(applicationProperties.getApplicationName()+" - Erro no processamento do dos arquivos. Worker: "+this.id+"; Motivo:"+e.getMessage());
+            System.out.printf(ApplicationConstants.MESSAGE_WORKER_ERROR, applicationProperties.getApplicationName(), this.id, e.getMessage());
         }
     }
 }

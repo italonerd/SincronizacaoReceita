@@ -1,8 +1,16 @@
 package italo.mendes.SincronizacaoReceita.com.bl;
 
 import italo.mendes.SincronizacaoReceita.ApplicationProperties;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 
@@ -12,20 +20,23 @@ import java.io.File;
  * @author Italo Mendes Rodrigues
  */
 @Component
-@NoArgsConstructor
+@Getter
+@Setter
 public class Builder {
 
-    //TODO Ajustar para adicionar injeção de código
-    private ApplicationProperties applicationProperties;
+
+    @Autowired
+    private PrepareWorker prepare;
     private File arquivoRetaguardaCSV;
 
-    public Builder(ApplicationProperties applicationProperties, File arquivoRetaguardaCSV){
-        this.applicationProperties = applicationProperties;
-        this.arquivoRetaguardaCSV = arquivoRetaguardaCSV;
-    }
-
     public void build(){
-        PrepareWorker prepare = new PrepareWorker(this.applicationProperties);
+        /*TODO
+           O ideal seria fazer o controle de rotinas e arquivos para processar utilizando banco de dados,
+           assim conseguindo um melhor controle de qual arquivo está sendo processado no momento, permitir
+           uma maior divisão e multiprocessamento. Minha ideia seria constuir 3 aplicações diferentes uma
+           responsável por receber arquivos(Builder), outra por processar eles(Worker) e outra de finalizar
+           e entregar o processamento(Merge).
+        */
         prepare.prepareRoutine(this.arquivoRetaguardaCSV);
     }
 }
