@@ -6,6 +6,7 @@
 |Java version: 15.0.1|
 
 O projeto tem como objetivos:  
+
 0. Criar uma aplicação SprintBoot standalone. Exemplo: java -jar SincronizacaoReceita <input-file>
 1. Processa um arquivo CSV de entrada com o formato abaixo.
 2. Envia a atualização para a Receita através do serviço (SIMULADO pela classe ReceitaService).
