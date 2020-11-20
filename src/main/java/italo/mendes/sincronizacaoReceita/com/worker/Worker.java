@@ -1,12 +1,13 @@
-package italo.mendes.SincronizacaoReceita.com.worker;
+package italo.mendes.sincronizacaoReceita.com.worker;
 
-import italo.mendes.SincronizacaoReceita.ApplicationConstants;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguarda;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
-import italo.mendes.SincronizacaoReceita.com.service.ReceitaService;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.sincronizacaoReceita.com.service.ReceitaService;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
  *
  * @author Italo Mendes Rodrigues
  */
+@Slf4j
 @Getter
 @Setter
 public class Worker implements Runnable {
@@ -37,18 +39,18 @@ public class Worker implements Runnable {
     public void run() {
         try {
             for (final ArquivoRetaguarda line : linesToWork) {
-                Boolean resultado = receitaService.atualizarConta(
+                boolean resultado = receitaService.atualizarConta(
                         line.getAgencia(),
                         line.getConta().replace("-",""),
-                        Double.valueOf(line.getSaldo().replace(",",".")),
+                        Double.parseDouble(line.getSaldo().replace(",",".")),
                         line.getStatus());
-                line.setResultado(resultado.toString());
+                line.setResultado(String.valueOf(resultado));
             }
 
-            utils.generateCSVFile(applicationProperties, linesToWork, id + ApplicationConstants.FILE_CSV, true, false);
-            System.out.printf(ApplicationConstants.MESSAGE_WORKER_STARTED, applicationProperties.getApplicationName(), this.id);
+            utils.generateCSVFile(applicationProperties.getPathTemp(), linesToWork, id + ApplicationConstants.CSV_FILE, true, false);
+            log.info(String.format(ApplicationConstants.MESSAGE_WORKER_STARTED, this.id));
         } catch (Exception e) {
-            System.out.printf(ApplicationConstants.MESSAGE_WORKER_ERROR, applicationProperties.getApplicationName(), this.id, e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_WORKER_ERROR, this.id, e.getMessage()));
         }
     }
 }

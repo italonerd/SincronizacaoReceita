@@ -1,8 +1,7 @@
-package italo.mendes.SincronizacaoReceita.com.dto;
+package italo.mendes.sincronizacaoReceita.com.dto;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
-import com.opencsv.bean.CsvCustomBindByPosition;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,7 +27,7 @@ public class ArquivoRetaguarda {
     @CsvBindByName(column = "resultado")
     private String resultado;
 
-    public static String getProcessedColumnsHeaders(){
+    static String getProcessedColumnsHeaders(){
         return "agencia;conta;saldo;status;resultado";
     }
 

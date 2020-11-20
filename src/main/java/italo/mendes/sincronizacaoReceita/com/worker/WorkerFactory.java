@@ -1,10 +1,10 @@
-package italo.mendes.SincronizacaoReceita.com.worker;
+package italo.mendes.sincronizacaoReceita.com.worker;
 
-import italo.mendes.SincronizacaoReceita.ApplicationConstants;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,19 +22,20 @@ import java.util.concurrent.TimeUnit;
 @Getter
 @Setter
 @Component
+@Slf4j
 public class WorkerFactory {
 
     @Autowired
     private ApplicationProperties applicationProperties;
     private List<Worker> workers;
 
-    public WorkerFactory() {
+    private WorkerFactory() {
         this.applicationProperties = new ApplicationProperties();
-        this.workers = new ArrayList<Worker>();
+        this.workers = new ArrayList<>();
     }
 
     public void process() {
-        System.out.printf(ApplicationConstants.MESSAGE_WORKER_FACTORY_START, applicationProperties.getApplicationName());
+        log.info(ApplicationConstants.MESSAGE_WORKER_FACTORY_START);
 
         ExecutorService workersExecutor = Executors.newFixedThreadPool(applicationProperties.getNumberOfWorkers());
         for (Worker woker : workers) {
@@ -44,7 +45,7 @@ public class WorkerFactory {
         try {
             workersExecutor.awaitTermination(applicationProperties.getMaxTimeToProcess(), TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            System.out.printf(ApplicationConstants.MESSAGE_WORKER_FACTORY_ERROR, applicationProperties.getApplicationName(), e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_WORKER_FACTORY_ERROR, e.getMessage()));
         }
     }
 }

@@ -1,11 +1,13 @@
-package italo.mendes.SincronizacaoReceita.com.merge;
+package italo.mendes.sincronizacaoReceita.com.merge;
 
-import italo.mendes.SincronizacaoReceita.ApplicationConstants;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.worker.Worker;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -17,19 +19,21 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Italo Mendes Rodrigues
  */
+@Slf4j
 @Component
 public class MergeWorkerFactory {
     @Autowired
     private ApplicationProperties applicationProperties;
     private List<MergeWorker> workers;
+    private ArquivoRetaguardaUtils utils;
 
     public MergeWorkerFactory() {
-        this.applicationProperties = new ApplicationProperties();
-        this.workers = new ArrayList<MergeWorker>();
+        this.workers = new ArrayList<>();
+        this.utils = new ArquivoRetaguardaUtils();
     }
 
-    public void process() {
-        System.out.printf(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_START, applicationProperties.getApplicationName());
+    public void process() throws Exception {
+        log.info(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_START);
 
         createMergeWorkers();
         ExecutorService workersExecutor = Executors.newFixedThreadPool(applicationProperties.getNumberOfWorkers());
@@ -40,11 +44,12 @@ public class MergeWorkerFactory {
         try {
             workersExecutor.awaitTermination(applicationProperties.getMaxTimeToProcess(), TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            System.out.printf(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_ERROR, applicationProperties.getApplicationName(), e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_MERGE_WORKER_FACTORY_ERROR, e.getMessage()));
         }
     }
 
-    private void createMergeWorkers() {
+    private void createMergeWorkers() throws Exception {
+        utils.generateFolder(new File(applicationProperties.getPathTemp()));
         for (int i = 0; i < this.applicationProperties.getNumberOfMergeWorkers(); i++) {
             MergeWorker worker = new MergeWorker(applicationProperties, i);
             this.workers.add(worker);

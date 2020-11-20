@@ -1,16 +1,9 @@
-package italo.mendes.SincronizacaoReceita.com.bl;
+package italo.mendes.sincronizacaoReceita.com.bl;
 
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 
@@ -20,13 +13,13 @@ import java.io.File;
  * @author Italo Mendes Rodrigues
  */
 @Component
-@Getter
-@Setter
 public class Builder {
 
-
     @Autowired
+    @Setter
     private PrepareWorker prepare;
+    @Getter
+    @Setter
     private File arquivoRetaguardaCSV;
 
     public void build(){

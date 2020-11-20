@@ -1,12 +1,13 @@
-package italo.mendes.SincronizacaoReceita.com.merge;
+package italo.mendes.sincronizacaoReceita.com.merge;
 
-import italo.mendes.SincronizacaoReceita.ApplicationConstants;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguarda;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 @Getter
 @Setter
 @NoArgsConstructor
+@Slf4j
 public class MergeWorker implements Runnable {
 
     private ApplicationProperties applicationProperties;
@@ -43,17 +45,16 @@ public class MergeWorker implements Runnable {
     public void run() {
         try {
             loadTempFiles();
-            arquivoUtils.generateCSVFile(applicationProperties, tempFiles, applicationProperties.getResultFile(), false,true);
-            File arquivoFinal = new File(applicationProperties.getResultFile());
-            System.out.printf(ApplicationConstants.MESSAGE_RESULTADO, applicationProperties.getApplicationName(), arquivoFinal.getCanonicalPath());
+            arquivoUtils.generateCSVFile(applicationProperties.getPathTemp(), tempFiles, applicationProperties.getResultFile(), false,true);
+            log.info(String.format(ApplicationConstants.MESSAGE_RESULTADO, new File(applicationProperties.getResultFile()).getCanonicalPath()));
             arquivoUtils.readFileContent(applicationProperties.getResultFile());
-            arquivoUtils.cleanTempFolder(applicationProperties);
+            arquivoUtils.cleanTempFolder(applicationProperties.getPathTemp());
         }catch (Exception e){
-            System.out.printf(ApplicationConstants.MESSAGE_MERGE_WORKER_PROBLEM, applicationProperties.getApplicationName(), e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_MERGE_WORKER_ERROR, e.getMessage()));
         }
     }
 
-    public void loadTempFiles(){
+    private void loadTempFiles(){
         String directoryName = applicationProperties.getPathTemp();
         try (Stream<Path> paths = Files.walk(Paths.get(directoryName))) {
             List<List<ArquivoRetaguarda>> list = paths.filter(Files::isRegularFile)
@@ -62,7 +63,7 @@ public class MergeWorker implements Runnable {
                                 try {
                                     return arquivoUtils.loadArquivoRetaguarda(p.toFile(), 0, ';');
                                 } catch (IOException e) {
-                                    System.out.println(applicationProperties.getApplicationName() + " - Erro na finalização do processamento dos arquivos. Motivo:" + e.getMessage());
+                                    log.error(String.format(ApplicationConstants.MESSAGE_MERGE_WORKER_LOAD_TEMP_ERROR_PROBLEM, e.getMessage()));
                                 }
                                 return null;
                             }
@@ -71,7 +72,7 @@ public class MergeWorker implements Runnable {
 
             tempFiles = list.stream().flatMap(List::stream).collect(Collectors.toList());
         } catch (IOException e) {
-            System.out.printf(ApplicationConstants.MESSAGE_LOAD_TEMP_FILES_ERROR, applicationProperties.getApplicationName(), e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_LOAD_TEMP_FILES_ERROR, e.getMessage()));
         }
 
     }

@@ -1,4 +1,4 @@
-package italo.mendes.SincronizacaoReceita.com.service;
+package italo.mendes.sincronizacaoReceita.com.service;
 
 import org.springframework.stereotype.Service;
 

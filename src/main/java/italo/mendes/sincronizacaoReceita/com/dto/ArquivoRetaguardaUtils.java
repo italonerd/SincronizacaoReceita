@@ -1,13 +1,13 @@
-package italo.mendes.SincronizacaoReceita.com.dto;
+package italo.mendes.sincronizacaoReceita.com.dto;
 
 import com.opencsv.*;
 import com.opencsv.bean.*;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -23,18 +23,19 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@Slf4j
 public class ArquivoRetaguardaUtils {
 
     public List<ArquivoRetaguarda> loadArquivoRetaguarda(File arquivoRetaguardaCSV, int skipLines, char separator) throws IOException {
         CSVParser parser = new CSVParserBuilder().withSeparator(separator).build();
         CSVReader csvReader = new CSVReaderBuilder(new FileReader(arquivoRetaguardaCSV)).withSkipLines(skipLines).withCSVParser(parser).build();
 
-        ColumnPositionMappingStrategy strategy = new ColumnPositionMappingStrategy();
+        ColumnPositionMappingStrategy<ArquivoRetaguarda> strategy = new ColumnPositionMappingStrategy<>();
         strategy.setType(ArquivoRetaguarda.class);
 
-        CsvToBean csvToBean = new CsvToBeanBuilder(csvReader)
-                .withMappingStrategy(strategy)
-                .withIgnoreLeadingWhiteSpace(true)
+        CsvToBeanBuilder<ArquivoRetaguarda> csvToBeanBuilder = new CsvToBeanBuilder<>(csvReader);
+        csvToBeanBuilder.withMappingStrategy(strategy).withIgnoreLeadingWhiteSpace(true);
+        CsvToBean<ArquivoRetaguarda> csvToBean = csvToBeanBuilder
                 .build();
 
         List<ArquivoRetaguarda> linhas = csvToBean.parse();
@@ -43,14 +44,18 @@ public class ArquivoRetaguardaUtils {
         return linhas;
     }
 
-    public void generateCSVFile(ApplicationProperties applicationProperties, List<ArquivoRetaguarda> linesToWork, String fileName, boolean createDirectory, boolean withHeaders) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-        if(createDirectory){
-            String directoryName = applicationProperties.getPathTemp();
-            File directory = new File(directoryName);
-            if (! directory.exists()){
-                directory.mkdir();
+    public String generateFolder(File directory) throws Exception {
+        if (!directory.exists()) {
+            if(!directory.mkdir()){
+                throw new Exception(ApplicationConstants.MESSAGE_GENERATE_FILE_DIRECTORY_ERROR);
             }
-            fileName = directoryName +"/" + fileName;
+        }
+        return directory.getPath();
+    }
+
+    public void generateCSVFile(String directoryName, List<ArquivoRetaguarda> linesToWork, String fileName, boolean createDirectory, boolean withHeaders) throws Exception{
+        if(createDirectory){
+            fileName = generateFolder(new File(directoryName)) +"/" + fileName;
         }
 
         Writer writer = new FileWriter(fileName);
@@ -64,13 +69,12 @@ public class ArquivoRetaguardaUtils {
         writer.close();
     }
 
-    public void cleanTempFolder(ApplicationProperties applicationProperties) throws IOException {
-        String directoryName = applicationProperties.getPathTemp();
+    public void cleanTempFolder(String directoryName) throws IOException {
         File directory = new File(directoryName);
         FileUtils.deleteDirectory(directory);
     }
 
     public void readFileContent(String filePath) throws IOException {
-        System.out.println(Files.readString(Path.of(filePath)));
+        log.info("\n"+Files.readString(Path.of(filePath)));
     }
 }

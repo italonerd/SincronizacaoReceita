@@ -1,15 +1,16 @@
-package italo.mendes.SincronizacaoReceita.com.bl;
+package italo.mendes.sincronizacaoReceita.com.bl;
 
-import italo.mendes.SincronizacaoReceita.ApplicationConstants;
-import italo.mendes.SincronizacaoReceita.ApplicationProperties;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
-import italo.mendes.SincronizacaoReceita.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacaoReceita.ApplicationConstants;
+import italo.mendes.sincronizacaoReceita.ApplicationProperties;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
 import com.google.common.collect.Lists;
-import italo.mendes.SincronizacaoReceita.com.merge.MergeWorkerFactory;
-import italo.mendes.SincronizacaoReceita.com.worker.Worker;
-import italo.mendes.SincronizacaoReceita.com.worker.WorkerFactory;
+import italo.mendes.sincronizacaoReceita.com.merge.MergeWorkerFactory;
+import italo.mendes.sincronizacaoReceita.com.worker.Worker;
+import italo.mendes.sincronizacaoReceita.com.worker.WorkerFactory;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import java.util.List;
 @Component
 @Getter
 @Setter
+@Slf4j
 public class PrepareWorker {
 
     @Autowired
@@ -38,20 +40,18 @@ public class PrepareWorker {
     public void prepareRoutine(File arquivoRetaguardaCSV){
         try {
             arquivoUtils = new ArquivoRetaguardaUtils();
-            List<ArquivoRetaguarda> linhas = arquivoUtils.loadArquivoRetaguarda(arquivoRetaguardaCSV, 1,';');
+            List<ArquivoRetaguarda> linhas = arquivoUtils.loadArquivoRetaguarda(arquivoRetaguardaCSV, 1, ';');
             int workerId = 0;
             for (List<ArquivoRetaguarda> linhasPerWorker : Lists.partition(linhas, applicationProperties.getMaxItemsPerWorker())) {
                 workerFactory.getWorkers().add(new Worker(applicationProperties, linhasPerWorker, workerId++));
             }
-            System.out.printf(ApplicationConstants.MESSAGE_WORKER_FACTORY_LOAD, applicationProperties.getApplicationName(),
-                    workerFactory.getWorkers().size(), linhas.size());
-            arquivoUtils.cleanTempFolder(applicationProperties);
+            log.info(String.format(ApplicationConstants.MESSAGE_WORKER_FACTORY_LOAD, workerFactory.getWorkers().size(), linhas.size()));
+            arquivoUtils.cleanTempFolder(applicationProperties.getPathTemp());
             workerFactory.process();
             mergeFactory.process();
 
         } catch (Exception e) {
-            System.out.printf( ApplicationConstants.MESSAGE_PREPARE_WORKER_ERROR, applicationProperties.getApplicationName(),
-                    arquivoRetaguardaCSV.getName(), e.getMessage());
+            log.error(String.format(ApplicationConstants.MESSAGE_PREPARE_WORKER_ERROR, arquivoRetaguardaCSV.getName(), e.getMessage()));
         }
     }
 }
