@@ -1,13 +1,11 @@
-package italo.mendes.sincronizacaoReceita.com.mergeworker;
+package italo.mendes.sincronizacao.com.mergeworker;
 
-import italo.mendes.sincronizacaoReceita.ApplicationConstants;
-import italo.mendes.sincronizacaoReceita.ApplicationProperties;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
-import italo.mendes.sincronizacaoReceita.com.merge.MergeWorker;
-import italo.mendes.sincronizacaoReceita.com.merge.MergeWorkerFactory;
+import italo.mendes.sincronizacao.ApplicationConstants;
+import italo.mendes.sincronizacao.ApplicationProperties;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.sincronizacao.com.merge.MergeWorker;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
-class MergeWorkerFactoryTest {
+class MergeWorkerTests {
 
     @Autowired
     private ApplicationProperties applicationProperties;
-    @Autowired
-    private MergeWorkerFactory mergeWorkerFactory;
 
     private ArquivoRetaguardaUtils utils;
     private File arquivoRetaguardaCSV;
     private int skipLines;
     private char separator;
+    private MergeWorker mergeWorker;
     private int id = 0;
 
     @BeforeEach
@@ -40,7 +37,6 @@ class MergeWorkerFactoryTest {
         separator = ',';
 
         utils.cleanTempFolder(applicationProperties.getPathTemp());
-
         ArquivoRetaguarda arquivoRetaguarda =  new ArquivoRetaguarda();
         arquivoRetaguarda.setAgencia("0101");
         arquivoRetaguarda.setResultado("true");
@@ -51,6 +47,8 @@ class MergeWorkerFactoryTest {
         List<ArquivoRetaguarda> tempFiles = new ArrayList<>();
         tempFiles.add(arquivoRetaguarda);
         utils.generateCSVFile(applicationProperties.getPathTemp(),tempFiles,id + ApplicationConstants.CSV_FILE,true,false);
+
+        mergeWorker = new MergeWorker(applicationProperties, id);
     }
 
     @AfterEach
@@ -59,7 +57,7 @@ class MergeWorkerFactoryTest {
     }
 
     @Test
-    void processTest(){
-        Assertions.assertDoesNotThrow(() -> mergeWorkerFactory.process());
+    void runTest(){
+        mergeWorker.run();
     }
 }

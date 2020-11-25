@@ -1,20 +1,19 @@
-package italo.mendes.sincronizacaoReceita.dto;
+package italo.mendes.sincronizacao.dto;
 
-import italo.mendes.sincronizacaoReceita.ApplicationConstants;
-import italo.mendes.sincronizacaoReceita.ApplicationProperties;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
+import italo.mendes.sincronizacao.ApplicationConstants;
+import italo.mendes.sincronizacao.ApplicationProperties;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguardaUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.util.Assert;
+
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

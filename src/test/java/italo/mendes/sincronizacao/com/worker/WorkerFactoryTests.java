@@ -1,10 +1,9 @@
-package italo.mendes.sincronizacaoReceita.com.worker;
+package italo.mendes.sincronizacao.com.worker;
 
-import italo.mendes.sincronizacaoReceita.ApplicationConstants;
-import italo.mendes.sincronizacaoReceita.ApplicationProperties;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguarda;
-import italo.mendes.sincronizacaoReceita.com.dto.ArquivoRetaguardaUtils;
-import italo.mendes.sincronizacaoReceita.com.merge.MergeWorker;
+import italo.mendes.sincronizacao.ApplicationConstants;
+import italo.mendes.sincronizacao.ApplicationProperties;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguarda;
+import italo.mendes.sincronizacao.com.dto.ArquivoRetaguardaUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,16 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
-class WorkerTests {
+class WorkerFactoryTests {
 
     @Autowired
     private ApplicationProperties applicationProperties;
+    @Autowired
+    private WorkerFactory workerFactory;
 
     private ArquivoRetaguardaUtils utils;
+    private Worker worker;
     private File arquivoRetaguardaCSV;
     private int skipLines;
     private char separator;
-    private Worker worker;
     private int id = 0;
 
     @BeforeEach
@@ -47,7 +48,7 @@ class WorkerTests {
         List<ArquivoRetaguarda> tempFiles = new ArrayList<>();
         tempFiles.add(arquivoRetaguarda);
 
-        worker = new Worker(applicationProperties, tempFiles, id);
+        workerFactory.getWorkers().add(new Worker(applicationProperties, tempFiles, id));
     }
 
     @AfterEach
@@ -56,7 +57,7 @@ class WorkerTests {
     }
 
     @Test
-    void runTest(){
-        worker.run();
+    void processTest(){
+        workerFactory.process();
     }
 }

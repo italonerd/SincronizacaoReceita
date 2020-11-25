@@ -1,7 +1,7 @@
-package italo.mendes.sincronizacaoReceita.com.builder;
+package italo.mendes.sincronizacao.com.builder;
 
-import italo.mendes.sincronizacaoReceita.com.bl.Builder;
-import italo.mendes.sincronizacaoReceita.com.bl.PrepareWorker;
+import italo.mendes.sincronizacao.com.bl.Builder;
+import italo.mendes.sincronizacao.com.bl.PrepareWorker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest

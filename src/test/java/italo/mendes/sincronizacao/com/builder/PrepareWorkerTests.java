@@ -1,6 +1,6 @@
-package italo.mendes.sincronizacaoReceita.com.builder;
+package italo.mendes.sincronizacao.com.builder;
 
-import italo.mendes.sincronizacaoReceita.com.bl.PrepareWorker;
+import italo.mendes.sincronizacao.com.bl.PrepareWorker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
